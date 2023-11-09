@@ -1,0 +1,6 @@
+customtkinter==5.2.0
+darkdetect==0.8.0
+mysql-connector-python==8.2.0
+Pillow==10.1.0
+protobuf==4.21.12
+pyglet==2.0.9
