@@ -89,12 +89,18 @@ def order(food_item, quantity, price, rowq):
     price1.grid(sticky="ew", row=rowq, column=2)
 
 
-order_info = orders_backend.continue_orders()
-food_items = order_info[0]
-food_quantity = order_info[1]
-food_price = order_info[2]
-tax_charge = order_info[3]
-service_charge = order_info[4]
+# order_info = [0,0,0,0,0]
+# food_items = order_info[0]
+# food_quantity = order_info[1]
+# food_price = order_info[2]
+# tax_charge = order_info[3]
+# service_charge = order_info[4]
+
+food_items = ["osmething", "nothign"]
+food_quantity = [2,4]
+food_price = [34.6,453.5]
+tax_charge = 1.5
+service_charge = 1.3
 
 # declaring sub_total amount as 0
 sub_total = 0
