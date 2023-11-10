@@ -1,4 +1,5 @@
 import connection
+from login import *
 
 def checkAccountExist(username, password):
     conn=connection.conn_str()
@@ -26,3 +27,14 @@ def openMenu(username, password):
         return status
     else:
         return status
+
+def login_button_function(username_entry, password_entry, login_text):
+    username = username_entry.get()
+    password = password_entry.get()
+    status = openMenu(username, password)
+    if status == 0:
+        login_text.configure(text="Wrong username", text_color="red")
+    elif status == -1:
+        login_text.configure(text="Wrong password", text_color="red")
+    else:
+        login_text.configure(text="Done", text_color="white")
