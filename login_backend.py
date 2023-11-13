@@ -23,10 +23,7 @@ def checkAccountExist(username, password):
 
 def openMenu(username, password):
     status = checkAccountExist(username, password)
-    if status == 1:
-        return status
-    else:
-        return status
+    return status
 
 def login_button_function(username_entry, password_entry, login_text):
     username = username_entry.get()
@@ -37,4 +34,5 @@ def login_button_function(username_entry, password_entry, login_text):
     elif status == -1:
         login_text.configure(text="Wrong password", text_color="red")
     else:
+        # login_window.withdraw()
         login_text.configure(text="Done", text_color="white")
