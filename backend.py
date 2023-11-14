@@ -16,6 +16,10 @@ class Window(ctk.CTk):
         
         self.loginframe = login.Loginframe(self)
         self.loginframe.login_button.bind("<Button-1>", self.go_to_menu)
+
+        self.menuframe = menu.Menuframe(self)
+        self.menuframe.order_button.bind("<Button-1>", self.go_to_orders)
+        self.menuframe.place_forget()
         
         self.mainloop()
 
@@ -30,5 +34,15 @@ class Window(ctk.CTk):
         else:
             # login_window.withdraw()
             self.loginframe.login_status_text.configure(text="Done", text_color="white")
+            self.loginframe.place_forget()
+            self.menuframe.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
+
+    def go_to_orders(self, event):
+        item_objects_stored = self.menuframe.menu_scrollable_frame.item_objects_stored
+        items_quantity = [int(item_objects_stored[i].get()) for i in range(len(item_objects_stored))]
+        item_menu_ids = self.menuframe.menu_scrollable_frame.items_data[0]
+        items_quantity = dict(zip(item_menu_ids, items_quantity))
+        self.ordered_items = {key:value for key, value in items_quantity.items() if value!=0}
+        print(self.ordered_items)
 
 Window("Restaurant Management System")
