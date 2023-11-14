@@ -1,101 +1,62 @@
 import customtkinter as ctk
 from PIL import Image
-from pyglet import font
 
 import menu_backend
-import orders_backend
-
-#Fonts
-font.add_file("Documents/Trip_Sans/TripSans-Medium.ttf")
-font.add_file("Documents/Trip_Sans/TripSans-Bold.ttf")
-ffont=('Trip Sans Bold',40)
-ffont1=('Trip Sans Medium',20)
-ffont2=('Trip Sans Medium',15)
-
-ctk.set_appearance_mode("dark")  # Modes: system (default), light, dark
-ctk.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
-
-app = ctk.CTk()  #creating cutstom tkinter window
-app.geometry("960x540")
-app.title('Table')
-app.resizable(False,False)
-app.lift()
-app.attributes('-topmost',True)
-app.after_idle(app.attributes,'-topmost',False)
-
-#Frame
-menu_frame=ctk.CTkFrame(master=app, width=720, height=400)
-menu_frame.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
-menu_frame.pack_propagate(0)
-
-#Menu label
-menu_label=ctk.CTkLabel(master = menu_frame, width=300, text="Menu", font=ffont)
-menu_label.pack(padx=0, pady=0)
-
-#scrollable menu_frame
-menu_scrollable_frame=ctk.CTkScrollableFrame(master=menu_frame, width=720, height=280, fg_color="transparent")
-menu_scrollable_frame.pack()
-
-# #frame2 config not needed as of now
-# frame2=ctk.CTkFrame(master=menu_scrollable_frame, width=420, height=300, fg_color="#FFFDD0")
-# frame2.pack()
-
-#itemCreator config
-def itemCreator(r, c, itemname, itemprice, imagepath):
-    itemCreatorFrame=ctk.CTkFrame(master=menu_scrollable_frame, width=420, height=300, fg_color="hotpink")
-    imageFile=Image.open(imagepath)
-    tempic = ctk.CTkImage(light_image=imageFile, size=(120,120))
-    tempicl = ctk.CTkLabel(master=itemCreatorFrame, text="", image=tempic)
-    tempicl.pack()
-    ctk.CTkLabel(master=itemCreatorFrame, text=itemname, font=ffont1).pack()
-    ctk.CTkLabel(master=itemCreatorFrame, text=itemprice, font=ffont1).pack()
-    foodQuantityValues = ["0", "1", "2", "3", "4", "5"]
-    foodQuantityMenu = ctk.CTkOptionMenu(master=itemCreatorFrame, values=foodQuantityValues, width=0, height=25, font=ffont2, dropdown_font=ffont2, anchor="center")
-    foodQuantityMenu.set("0")
-    foodQuantityMenu.pack(padx=5, pady=(0,5), fill="x")
-    itemCreatorFrame.grid(row=r, column=c, padx=10, pady=10)
-    return foodQuantityMenu
-
-item_data = (menu_backend.fetch_menu_items())
-
-#items
-menu_id_list = item_data[0]
-item_names = item_data[1]
-item_prices=item_data[2]
-image_path=item_data[3]
-
-# item_names=["f1", "f2", "f3", "f4"]
-# item_prices=["10", "10", "10", "10"]
-# image_path=["Documents/tempic.png", "Documents/tempic.png", "Documents/tempic.png", "Documents/tempic.png"]
-
-items=[]
-def item_placer(items_in_row: int):
-    item_length = len(item_names)
-    t=item_length
-    i=0
-    for r in range(len(item_names)):
-        if t<items_in_row:
-            n=t
-        else:
-            n=items_in_row
-        for c in range(n):
-            option=itemCreator(r, c, item_names[i], item_prices[i], image_path[i])
-            items.append(option)
-            i+=1
-        t-=items_in_row
-item_placer(4)
-
-#order button
-item_length=len(items)
-
-def orderfunction():
-    item_quantity = [int(items[i].get()) for i in range(item_length)]
-    item_quantity = dict(zip(menu_id_list, item_quantity))
-    ordered_items = {key:value for key, value in item_quantity.items() if value!=0} #returns menuid and quantity {'menu1': 1, 'menu2' : 2}
-    return orders_backend.generate_order_id(ordered_items) if ordered_items else print("No items")
-
-order_button = ctk.CTkButton(master=menu_frame, text="Order", width=60, height=40, font=ffont1, command=orderfunction)
-order_button.pack(padx=(0,12), pady=(5,10), anchor="e")
 
 
-app.mainloop()
+class Menuframe(ctk.CTkFrame):
+    def __init__(self, parent):
+        super().__init__(parent, width=720, height=400, corner_radius=15)
+        # self.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
+        self.pack_propagate(0)
+        self.create_widgets()
+
+    def create_widgets(self):
+        menu_text = ctk.CTkLabel(master=self, text="Menu",font=('Trip Sans Medium', 40))
+        menu_text.pack()
+        self.menu_scrollable_frame = Menu_Scrollable_Frame(self)
+        self.order_button = ctk.CTkButton(master=self, text="Order", width=60, height=40, font=('Trip Sans Medium', 20))
+        self.order_button.pack(padx=(0,12), pady=(5,10), anchor="e")
+
+class Menu_Scrollable_Frame(ctk.CTkScrollableFrame):
+    def __init__(self, parent):
+        super().__init__(parent, width=720, height=280, fg_color="transparent")
+        self.pack()
+        # self.item_creator(0, 0, "abc", "100", "Documents/tempic.png")
+        self.item_placer(5)
+
+    def item_creator(self, r, c, item_name, item_price, item_image_path):
+        self.item_objects = []
+        item_frame = ctk.CTkFrame(self, width=420, height=300, fg_color="hotpink")
+        item_image = Image.open(item_image_path)
+        item_image = ctk.CTkImage(item_image, size=(120,120))
+        ctk.CTkLabel(item_frame, text="", image=item_image).pack()
+        ctk.CTkLabel(item_frame, text=item_name, font=('Trip Sans Medium', 20)).pack()
+        ctk.CTkLabel(item_frame, text=item_price, font=('Trip Sans Medium', 20)).pack()
+        food_quantity_options = ["0", "1", "2", "3", "4", "5"]
+        food_quantity_optionmenu = ctk.CTkOptionMenu(item_frame, values=food_quantity_options, anchor="center", width=0, height=25, font=('Trip Sans Medium', 15), dropdown_font=('Trip Sans Medium', 15))
+        food_quantity_optionmenu.set("0")
+        food_quantity_optionmenu.pack(padx=5, pady=(0,5), fill="x")
+        item_frame.grid(row=r, column=c, padx=10, pady=10)
+        return food_quantity_optionmenu
+
+    def item_placer(self, items_in_row):
+        self.item_objects_stored = []
+        self.items_data = (menu_backend.fetch_menu_items())
+        item_menu_ids, item_name_list, item_price_list, item_image_list = self.items_data
+        number_of_items = len(item_menu_ids)
+        temp = number_of_items
+        counter = 0
+        
+        for rows in range(number_of_items):
+            n = items_in_row
+
+            if temp < items_in_row:
+                n = temp
+
+            for column in range(n):
+                item_object = self.item_creator(rows, column, item_name_list[counter], item_price_list[counter], item_image_list[counter])
+                self.item_objects_stored.append(item_object)
+                counter += 1
+
+            temp -= items_in_row
