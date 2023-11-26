@@ -85,3 +85,16 @@ def continue_orders(order_id, menu_items_dict):
         
     # return all variables for gui use
     return food_names, food_quantity, food_price, tax_charge, service_charge
+
+def fetch_name_price(menu_id):
+    conn = connection.conn_str()
+    cursor = conn.cursor()
+    query = f"select name, price from menu where menuid='{menu_id}'"
+    cursor.execute(query)
+    data = cursor.fetchall()
+    # print(data[0][0], data[0][1])
+    food_name = data[0][0]
+    food_price = data[0][1]
+    return food_name, food_price
+
+fetch_name_price("menu1")

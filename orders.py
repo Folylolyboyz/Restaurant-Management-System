@@ -1,134 +1,110 @@
 import customtkinter as ctk
-from pyglet import font
+from PIL import Image
+
 import orders_backend
 
-font.add_file("Documents/Trip_Sans/TripSans-Medium.ttf")
-font.add_file("Documents/Trip_Sans/TripSans-Bold.ttf")
-ffont = ('Trip Sans Bold', 40)
-ffont1 = ('Trip Sans Medium', 20)
-ffont2 = ('Trip Sans Medium', 16)
+class OrderFrame(ctk.CTkFrame):
+    def __init__(self, window):
+        super().__init__(window, width=960, height=540)
 
-ctk.set_appearance_mode("dark")  # Modes: system (default), light, dark
-ctk.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
+        bg_image = Image.open("Documents\orders_background.png")
+        bg_image = ctk.CTkImage(bg_image, size = (960,540))
+        menu_text = ctk.CTkLabel(master=self, text="", image = bg_image)
+        menu_text.place(relx = 0, rely = 0)
 
-app = ctk.CTk()  # creating cutstom tkinter window
-app.geometry("1280x720")
-app.title('Orders')
+        # mainframe config
+        self.frame_config()
+        self.create_widgets()
 
-app.resizable(False, False)
-app.lift()
-app.attributes('-topmost', True)
-app.after_idle(app.attributes, '-topmost', False)
+        # sub total for total order
+        self.sub_total = 0
+        
+        # left side orders frame
+        self.order_frame = Ordered_Items_Frame(self)
 
-# row and column configure
-app.rowconfigure(0, weight=1)
-app.rowconfigure(1, weight=4)
-app.columnconfigure(0, weight=1)
-app.columnconfigure(1, weight=1)
-app.columnconfigure(2, weight=1)
+    def frame_config(self):
+        self.configure(width=960, height=540)
+        self.grid_propagate(0)
+        self.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
+        # row and column configure
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=4)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
 
-#frame containing
+    def create_widgets(self):
+        self.pay_button = ctk.CTkButton(self, text="Pay", width=261, height=45, font=('Trip Sans Bold', 28), bg_color="#F14A33", fg_color="#FFC700", hover_color="#FFC700", text_color="black", corner_radius=20)
+        self.pay_button.place(x = 626, y = 430)        
 
+# right side payment frame
+class Payment_Frame(ctk.CTkFrame):
+    def __init__(self, parent, total_amount):
+        self.total_amount = total_amount
+        super().__init__(parent, width=261, height=314, fg_color="#FFF1E2")
+        self.place(x = 626, y = 101)
+        self.create_widgets()
 
-# menu label on top
-title = ctk.CTkLabel(master=app, text="ORDER", font=ffont)
-title.grid(row=0, column=1, pady=30)
-# title.pack(expand=True, pady=10)
+    def create_widgets(self):
+        payment_label = ctk.CTkLabel(self, text="PAYMENT", font=('Trip Sans Bold', 32))
+        payment_label.place(x = 63, y = 20)
+        service_charge = 10
+        tax_charge = 10
+        ctk.CTkLabel(self, text="Total Amount", font=('Trip Sans Bold', 16)).place(x = 142, y = 80)
+        ctk.CTkLabel(self, text=f"₹{self.total_amount}.00", font=('Bahnschrift SemiLight', 18), width=238, height=20, anchor="e").place(x = 0, y = 101)
+        ctk.CTkLabel(self, text="Service Charges", font=('Trip Sans Bold', 16)).place(x = 120, y = 119)
+        ctk.CTkLabel(self, text=f"₹{service_charge}.00", font=('Bahnschrift SemiLight', 18), width=238, height=20, anchor="e").place(x = 0, y = 143)
+        ctk.CTkLabel(self, text="Tax Charges", font=('Trip Sans Bold', 16)).place(x = 148, y = 161)
+        ctk.CTkLabel(self, text=f"₹{tax_charge}.00", font=('Bahnschrift SemiLight', 18), width=238, height=20, anchor="e").place(x = 0, y = 185)
+        ctk.CTkLabel(self, text="Total Payable Amount", font=('Trip Sans Bold', 17)).place(x = 72, y = 244)
+        total = self.total_amount + service_charge + tax_charge
+        ctk.CTkLabel(self, text=f"₹{total}.00", font=('Bahnschrift SemiLight', 18), width=238, height=20, anchor="e").place(x = 0, y = 268)
+      
+# left order frame
+class Ordered_Items_Frame(ctk.CTkFrame):
+    def __init__(self, parent):
+        self.parent = parent
+        super().__init__(parent, width=536, height=374, fg_color="#EEC0AA", corner_radius=0)
+        self.place(x = 73, y = 101)
+        
+        ordered_items_label = ctk.CTkLabel(self, text="ORDERED ITEMS", font=('Trip Sans Bold', 32))
+        ordered_items_label.place(x = 154, y = 19)
+        
+        # order details frame inside order mainframe
+        self.scrollable_frame = ctk.CTkScrollableFrame(self, width=494, height=290, bg_color="transparent", fg_color="transparent")
+        self.scrollable_frame.place(x = 10, y = 71)
+        self.scrollable_frame._scrollbar.configure(width = 16)
+        self.pack_propagate(0)
+        # self.ordered_items_frame({"menu1": 1, "menu2":2, "menu3":3})
 
-# # item price and quantity
-# food_items = ["Burger", "Chicken Sandwich", "some food", "some another food",
-#               "something", "its tasty food", "something new thistym"]
-# food_quantity = [2, 3, 2, 1, 4, 1, 2]
-# food_price = [69, 45, 34, 23, 12, 54, 12]
+    def ordered_items_frame(self, ordered_items):
+        food_item_list = []
+        food_quantity_list = []
+        food_price_list = []
+        total_amount = 0
 
-# # tax percentage and service charge
-# tax_charge = 0.18
-# service_charge = 15
+        # ordered food details
+        ordered_items_list = list(ordered_items.items())
+        for i in ordered_items_list:
+            name, price = orders_backend.fetch_name_price(str(i[0]))
+            food_item_list.append(name.capitalize())
+            food_quantity_list.append(int(i[1]))
+            food_price_list.append(int(price))
 
-# order details frame -left
-odrframe = ctk.CTkScrollableFrame(master=app, width=700, height=450)
-odrframe.grid(row=1, columnspan=2, padx=10, sticky="ne")
+        number_of_items = len(food_item_list)
+        
+        for i in range(number_of_items):
+            total_amount += food_price_list[i] * food_quantity_list[i]
+        
+        for i in range(number_of_items):
+            self.ordered_item_creater(food_item_list[i], food_quantity_list[i], food_price_list[i])
 
-# payment details frame -right
-payframe = ctk.CTkFrame(master=app, width=100, height=360)
-payframe.grid(row=1, column=2, padx=10, sticky="nw")
-
-# order category frame
-catframe = ctk.CTkFrame(master=odrframe, width=600,
-                        fg_color="#333333")
-catframe.pack(expand=True, fill="x")
-
-# food details frame inside orderframe
-foodordered = ctk.CTkFrame(master=odrframe, width=200, fg_color="#38618c")
-foodordered.pack(expand=True, fill="x", pady=6)
-
-# order category labels
-fooditem = ctk.CTkLabel(master=catframe, width=100,
-                        height=50, text="Order Name", font=ffont1)
-fooditem.pack(side="left", expand=True)
-fquantity = ctk.CTkLabel(master=catframe, width=100,
-                         text="Quantity", font=ffont1)
-fquantity.pack(side="left", expand=True)
-fprice = ctk.CTkLabel(master=catframe, width=100,
-                      text="Price", font=ffont1)
-fprice.pack(side="right", expand=True)
-
-# food ordered details
-
-
-def order(food_item, quantity, price, rowq):
-    item1 = ctk.CTkLabel(master=foodordered, width=230,
-                         height=40, text="{}".format(food_item), font=ffont2, fg_color="#294868")
-    quantity1 = ctk.CTkLabel(
-        master=foodordered, width=230, text="{}".format(quantity), font=ffont2)
-    price1 = ctk.CTkLabel(master=foodordered, width=230,
-                          text="${}".format(price), font=ffont2)
-    # place them
-    item1.grid(sticky="ew", row=rowq, column=0)
-    quantity1.grid(sticky="ew", row=rowq, column=1)
-    price1.grid(sticky="ew", row=rowq, column=2)
-
-
-# order_info = [0,0,0,0,0]
-# food_items = order_info[0]
-# food_quantity = order_info[1]
-# food_price = order_info[2]
-# tax_charge = order_info[3]
-# service_charge = order_info[4]
-
-food_items = ["osmething", "nothign"]
-food_quantity = [2,4]
-food_price = [34.6,453.5]
-tax_charge = 1.5
-service_charge = 1.3
-
-# declaring sub_total amount as 0
-sub_total = 0
-for i in range(len(food_items)):
-    order(food_items[i], food_quantity[i], food_price[i], i)
-    order(food_items[i], food_quantity[i], food_price[i], i)
-    sub_total += food_quantity[i] * food_price[i]
-
-# payment details
-
-
-def payment_details(sub_t, tax, service):
-    chargesframe = ctk.CTkFrame(
-        master=payframe)
-    chargesframe.grid(row=0, sticky="new", padx=10, pady=10)
-    paycharges = ctk.CTkLabel(
-        master=chargesframe, text="Sub Total: ${}\n\nTax Charges: ${}\n\nService Charges: ${}"
-                    .format(sub_t, tax, service), font=ffont2, height=150, pady=10, padx=10)
-    total_amount = sub_t + sub_t * tax + service
-    payamount = ctk.CTkLabel(
-        master=payframe, text="Total amount: \n${}".format(total_amount), width=280, font=ffont1, height=205)
-    paybtn = ctk.CTkButton(master=payframe, text="Pay",
-                           width=200, height=60, font=ffont1)
-    paycharges.grid(row=0, sticky="n")
-    payamount.grid(row=1, sticky="n")
-    paybtn.grid(row=2, sticky="ns", pady=14)
-
-    # sub total , tax , service charge
-payment_details(sub_total, tax_charge, service_charge)
-
-app.mainloop()
+        self.payment_frame = Payment_Frame(self.parent, total_amount)
+    
+    def ordered_item_creater(self, item, quantity, price):
+        item_frame = ctk.CTkFrame(self.scrollable_frame, width=490, height=100, fg_color="#FFF1E2", corner_radius=20)
+        ctk.CTkLabel(item_frame, text=item, font=('Trip Sans Bold', 20), fg_color="#FFF1E2", bg_color="#FFF1E2").place(x = 19, y = 24)
+        ctk.CTkLabel(item_frame, text=f"Quantity: {quantity}", font=('Bahnschrift SemiLight', 20), fg_color="#FFF1E2", bg_color="#FFF1E2").place(x = 19, y = 50)
+        ctk.CTkLabel(item_frame, text=f"₹{price}.00", font=('Bahnschrift SemiLight', 20), fg_color="#FFF1E2", bg_color="#FFF1E2").place(x = 400, y = 35)
+        item_frame.pack_propagate(0)
+        item_frame.pack(padx = 0, pady = 5)
