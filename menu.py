@@ -31,7 +31,7 @@ class Menu_Scrollable_Frame(ctk.CTkScrollableFrame):
         self.item_placer()
 
     def item_creator(self, r, item_name, item_price, item_image_path):
-        self.item_objects = []
+        # self.item_objects = []
         # item_frame = ctk.CTkFrame(self, width=420, height=300, fg_color="hotpink")
         item_frame = ctk.CTkFrame(self, width=500, height=126, fg_color="#FFF1E2")
         item_frame.pack_propagate(0)
